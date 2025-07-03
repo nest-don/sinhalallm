@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinhala LLM - සිංහල භාෂා ආදර්ශය</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts for Sinhala -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans Sinhala', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #FF8A56 0%, #FFAD56 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .status-indicator {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 500;
+            margin: 10px auto;
+            max-width: 300px;
+        }
+        
+        .status-loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .tab-content {
+            padding: 30px;
+        }
+        
+        .nav-tabs .nav-link {
+            color: #667eea;
+            font-weight: 500;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            margin-right: 5px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+        }
+        
+        .output-area {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 150px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+        
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.assistant {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .parameter-controls {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            z-index: 10;
+        }
+        
+        .example-prompts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .example-prompt {
+            background: #e7f3ff;
+            color: #0066cc;
+            border: 1px solid #b8daff;
+            border-radius: 20px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .example-prompt:hover {
+            background: #cce7ff;
+            transform: translateY(-1px);
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .tab-content {
+                padding: 20px;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="header">
+                <h1><i class="fas fa-robot"></i> සිංහල LLM</h1>
+                <p class="mb-0">Sinhala Language Model - සිංහල භාෂා ආදර්ශය</p>
+                
+                <!-- Status Indicator -->
+                <div id="status" class="status-indicator">
+                    <i class="fas fa-spinner fa-spin"></i> Model Loading...
+                </div>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="generate-tab" data-bs-toggle="tab" data-bs-target="#generate" type="button" role="tab">
+                        <i class="fas fa-magic"></i> Text Generation
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab">
+                        <i class="fas fa-comments"></i> Chat Mode
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="complete-tab" data-bs-toggle="tab" data-bs-target="#complete" type="button" role="tab">
+                        <i class="fas fa-edit"></i> Text Completion
+                    </button>
+                </li>
+            </ul>
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="mainTabsContent">
+                <!-- Text Generation Tab -->
+                <div class="tab-pane fade show active" id="generate" role="tabpanel">
+                    <h3><i class="fas fa-magic"></i> Text Generation</h3>
+                    <p class="text-muted">Enter a prompt in Sinhala to generate creative text</p>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="generatePrompt" class="form-label">Prompt (සිංහල)</label>
+                                <textarea class="form-control" id="generatePrompt" rows="3" 
+                                          placeholder="ඔබගේ prompt එක මෙහි ටයිප් කරන්න..."></textarea>
+                            </div>
+                            
+                            <!-- Example Prompts -->
+                            <div class="example-prompts">
+                                <div class="example-prompt" onclick="setPrompt('generatePrompt', 'ශ්‍රී ලංකාව ලස්සන රටක්')">ශ්‍රී ලංකාව ලස්සන රටක්</div>
+                                <div class="example-prompt" onclick="setPrompt('generatePrompt', 'අධ්‍යාපනය වැදගත් වන්නේ')">අධ්‍යාපනය වැදගත් වන්නේ</div>
+                                <div class="example-prompt" onclick="setPrompt('generatePrompt', 'කොළඹ නගරය')">කොළඹ නගරය</div>
+                                <div class="example-prompt" onclick="setPrompt('generatePrompt', 'සිංහල භාෂාව')">සිංහල භාෂාව</div>
+                            </div>
+                            
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-primary" onclick="generateText()" id="generateBtn">
+                                    <i class="fas fa-magic"></i> Generate
+                                </button>
+                                <button class="btn btn-secondary" onclick="clearOutput('generateOutput')">
+                                    <i class="fas fa-eraser"></i> Clear
+                                </button>
+                            </div>
+                            
+                            <div id="generateOutput" class="output-area">
+                                <p class="text-muted"><i class="fas fa-info-circle"></i> Generated text will appear here...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="parameter-controls">
+                                <h5><i class="fas fa-sliders-h"></i> Parameters</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="maxLength" class="form-label">Max Length: <span id="maxLengthValue">100</span></label>
+                                    <input type="range" class="form-range" id="maxLength" min="20" max="300" value="100" 
+                                           oninput="updateValue('maxLength', 'maxLengthValue')">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="temperature" class="form-label">Temperature: <span id="temperatureValue">0.8</span></label>
+                                    <input type="range" class="form-range" id="temperature" min="0.1" max="2.0" step="0.1" value="0.8" 
+                                           oninput="updateValue('temperature', 'temperatureValue')">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="topP" class="form-label">Top-p: <span id="topPValue">0.9</span></label>
+                                    <input type="range" class="form-range" id="topP" min="0.1" max="1.0" step="0.1" value="0.9" 
+                                           oninput="updateValue('topP', 'topPValue')">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Mode Tab -->
+                <div class="tab-pane fade" id="chat" role="tabpanel">
+                    <h3><i class="fas fa-comments"></i> Chat Mode</h3>
+                    <p class="text-muted">Have a conversation in Sinhala with the AI</p>
+                    
+                    <div class="chat-container" id="chatContainer">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-comments fa-3x mb-3"></i>
+                            <p>Start a conversation by typing a message below!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="chatInput" 
+                                   placeholder="ඔබගේ message එක මෙහි ටයිප් කරන්න..." 
+                                   onkeypress="if(event.key==='Enter') sendMessage()">
+                            <button class="btn btn-primary" onclick="sendMessage()" id="sendBtn">
+                                <i class="fas fa-paper-plane"></i> Send
+                            </button>
+                        </div>
+                        
+                        <div class="mt-2">
+                            <button class="btn btn-secondary btn-sm" onclick="clearChat()">
+                                <i class="fas fa-trash"></i> Clear Chat
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Text Completion Tab -->
+                <div class="tab-pane fade" id="complete" role="tabpanel">
+                    <h3><i class="fas fa-edit"></i> Text Completion</h3>
+                    <p class="text-muted">Start typing and let the AI complete your text</p>
+                    
+                    <div class="mb-3">
+                        <label for="completeText" class="form-label">Text to Complete (සිංහල)</label>
+                        <textarea class="form-control" id="completeText" rows="3" 
+                                  placeholder="ඔබට complete කරගන්න ඕන text එක මෙහි ටයිප් කරන්න..."></textarea>
+                    </div>
+                    
+                    <!-- Example Completions -->
+                    <div class="example-prompts">
+                        <div class="example-prompt" onclick="setPrompt('completeText', 'ශ්‍රී ලංකාව')">ශ්‍රී ලංකාව</div>
+                        <div class="example-prompt" onclick="setPrompt('completeText', 'අද දවසේ කාලගුණය')">අද දවසේ කාලගුණය</div>
+                        <div class="example-prompt" onclick="setPrompt('completeText', 'මම ගොඩක් කැමතියි')">මම ගොඩක් කැමතියි</div>
+                        <div class="example-prompt" onclick="setPrompt('completeText', 'තාක්ෂණය අනාගතයට')">තාක්ෂණය අනාගතයට</div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-8">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="completeText()" id="completeBtn">
+                                    <i class="fas fa-edit"></i> Complete
+                                </button>
+                                <button class="btn btn-secondary" onclick="clearOutput('completeOutput')">
+                                    <i class="fas fa-eraser"></i> Clear
+                                </button>
+                            </div>
+                            
+                            <div id="completeOutput" class="output-area">
+                                <p class="text-muted"><i class="fas fa-info-circle"></i> Completed text will appear here...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="parameter-controls">
+                                <h5><i class="fas fa-sliders-h"></i> Settings</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="completeMaxLength" class="form-label">Max Length: <span id="completeMaxLengthValue">100</span></label>
+                                    <input type="range" class="form-range" id="completeMaxLength" min="20" max="200" value="100" 
+                                           oninput="updateValue('completeMaxLength', 'completeMaxLengthValue')">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let modelLoaded = false;
+        
+        // Check model status on page load
+        checkModelStatus();
+        
+        // Check model status every 2 seconds until loaded
+        const statusInterval = setInterval(() => {
+            if (!modelLoaded) {
+                checkModelStatus();
+            } else {
+                clearInterval(statusInterval);
+            }
+        }, 2000);
+        
+        function checkModelStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    const statusDiv = document.getElementById('status');
+                    
+                    if (data.loading) {
+                        statusDiv.className = 'status-indicator status-loading';
+                        statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Model...';
+                        modelLoaded = false;
+                    } else if (data.loaded) {
+                        statusDiv.className = 'status-indicator status-ready';
+                        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Model Ready!';
+                        modelLoaded = true;
+                    } else if (data.error) {
+                        statusDiv.className = 'status-indicator status-error';
+                        statusDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error: ${data.error}`;
+                        modelLoaded = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Status check failed:', error);
+                });
+        }
+        
+        function updateValue(sliderId, valueId) {
+            const slider = document.getElementById(sliderId);
+            const valueSpan = document.getElementById(valueId);
+            valueSpan.textContent = slider.value;
+        }
+        
+        function setPrompt(elementId, text) {
+            document.getElementById(elementId).value = text;
+        }
+        
+        function showLoading(buttonId, loadingText = 'Processing...') {
+            const btn = document.getElementById(buttonId);
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span> ${loadingText}`;
+        }
+        
+        function hideLoading(buttonId, originalText, originalIcon) {
+            const btn = document.getElementById(buttonId);
+            btn.disabled = false;
+            btn.innerHTML = `<i class="${originalIcon}"></i> ${originalText}`;
+        }
+        
+        function generateText() {
+            if (!modelLoaded) {
+                alert('Model is still loading. Please wait...');
+                return;
+            }
+            
+            const prompt = document.getElementById('generatePrompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a prompt');
+                return;
+            }
+            
+            const maxLength = document.getElementById('maxLength').value;
+            const temperature = document.getElementById('temperature').value;
+            const topP = document.getElementById('topP').value;
+            
+            showLoading('generateBtn', 'Generating...');
+            
+            fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    max_length: parseInt(maxLength),
+                    temperature: parseFloat(temperature),
+                    top_p: parseFloat(topP)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading('generateBtn', 'Generate', 'fas fa-magic');
+                
+                if (data.error) {
+                    document.getElementById('generateOutput').innerHTML = 
+                        `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ${data.error}</div>`;
+                } else {
+                    document.getElementById('generateOutput').innerHTML = 
+                        `<h6><i class="fas fa-quote-left"></i> Generated Text:</h6>
+                         <p style="font-size: 1.1em; line-height: 1.6;">${data.generated_text}</p>`;
+                }
+            })
+            .catch(error => {
+                hideLoading('generateBtn', 'Generate', 'fas fa-magic');
+                document.getElementById('generateOutput').innerHTML = 
+                    `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Request failed: ${error}</div>`;
+            });
+        }
+        
+        function sendMessage() {
+            if (!modelLoaded) {
+                alert('Model is still loading. Please wait...');
+                return;
+            }
+            
+            const message = document.getElementById('chatInput').value.trim();
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessageToChat(message, 'user');
+            document.getElementById('chatInput').value = '';
+            
+            showLoading('sendBtn', 'Sending...');
+            
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading('sendBtn', 'Send', 'fas fa-paper-plane');
+                
+                if (data.error) {
+                    addMessageToChat(`Error: ${data.error}`, 'assistant');
+                } else {
+                    addMessageToChat(data.response, 'assistant');
+                }
+            })
+            .catch(error => {
+                hideLoading('sendBtn', 'Send', 'fas fa-paper-plane');
+                addMessageToChat(`Request failed: ${error}`, 'assistant');
+            });
+        }
+        
+        function addMessageToChat(message, sender) {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            // Clear placeholder if it exists
+            if (chatContainer.querySelector('.text-center')) {
+                chatContainer.innerHTML = '';
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `<strong>You:</strong> ${message}`;
+            } else {
+                messageDiv.innerHTML = `<strong>Assistant:</strong> ${message}`;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function clearChat() {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = `
+                <div class="text-center text-muted">
+                    <i class="fas fa-comments fa-3x mb-3"></i>
+                    <p>Start a conversation by typing a message below!</p>
+                </div>
+            `;
+        }
+        
+        function completeText() {
+            if (!modelLoaded) {
+                alert('Model is still loading. Please wait...');
+                return;
+            }
+            
+            const text = document.getElementById('completeText').value.trim();
+            if (!text) {
+                alert('Please enter text to complete');
+                return;
+            }
+            
+            const maxLength = document.getElementById('completeMaxLength').value;
+            
+            showLoading('completeBtn', 'Completing...');
+            
+            fetch('/complete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: text,
+                    max_length: parseInt(maxLength)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading('completeBtn', 'Complete', 'fas fa-edit');
+                
+                if (data.error) {
+                    document.getElementById('completeOutput').innerHTML = 
+                        `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ${data.error}</div>`;
+                } else {
+                    document.getElementById('completeOutput').innerHTML = 
+                        `<h6><i class="fas fa-edit"></i> Completed Text:</h6>
+                         <p style="font-size: 1.1em; line-height: 1.6;">${data.completed_text}</p>`;
+                }
+            })
+            .catch(error => {
+                hideLoading('completeBtn', 'Complete', 'fas fa-edit');
+                document.getElementById('completeOutput').innerHTML = 
+                    `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Request failed: ${error}</div>`;
+            });
+        }
+        
+        function clearOutput(outputId) {
+            document.getElementById(outputId).innerHTML = 
+                '<p class="text-muted"><i class="fas fa-info-circle"></i> Output cleared...</p>';
+        }
+    </script>
+</body>
+</html> 
